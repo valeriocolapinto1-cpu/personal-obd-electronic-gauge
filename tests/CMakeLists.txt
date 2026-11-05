@@ -7,7 +7,8 @@ add_executable(unit_tests
     unit/test_json.cpp
     unit/test_profiles.cpp
     unit/test_scheduler.cpp
-    unit/test_can_detect.cpp)
+    unit/test_can_detect.cpp
+    unit/test_display.cpp)
 target_link_libraries(unit_tests PRIVATE gauge_core GTest::gtest_main)
 target_compile_definitions(unit_tests PRIVATE GAUGE_PROFILES_DIR="${PROJECT_SOURCE_DIR}/profiles")
 gtest_discover_tests(unit_tests PROPERTIES LABELS unit)

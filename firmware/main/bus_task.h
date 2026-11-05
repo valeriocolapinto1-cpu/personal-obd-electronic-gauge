@@ -29,6 +29,8 @@ void bus_task_start();
 core::signals::SignalStore &signal_store();
 /// Copy of the active signal definitions (empty until a profile is selected).
 std::vector<core::signals::SignalDef> active_signals();
+/// Increments every time active_signals() changes.
+uint32_t signals_generation();
 BusStatus bus_status();
 /// Tells the bus task which slot is on screen (polled fast).
 void set_focus_slot(size_t slot);
