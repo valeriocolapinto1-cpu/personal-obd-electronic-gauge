@@ -65,6 +65,14 @@ public:
     /// Advances timers and sends pending consecutive frames.
     void poll(uint32_t now_ms);
 
+    /// Replaces the addressing/timing configuration and drops any transfer in progress.
+    void reconfigure(const IsoTpConfig &cfg)
+    {
+        cfg_ = cfg;
+        tx_state_ = TxState::Idle;
+        rx_state_ = RxState::Idle;
+    }
+
     /// Switches the id used for requests (functional 0x7DF vs physical 0x7E0+n).
     void set_tx_id(uint32_t id) { cfg_.tx_id = id; }
     const IsoTpConfig &config() const { return cfg_; }

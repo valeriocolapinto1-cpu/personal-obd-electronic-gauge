@@ -3,11 +3,17 @@ add_executable(unit_tests
     unit/test_safety_gate.cpp
     unit/test_isotp.cpp
     unit/test_obd.cpp
-    unit/test_units_vin.cpp)
+    unit/test_units_vin.cpp
+    unit/test_json.cpp
+    unit/test_profiles.cpp
+    unit/test_scheduler.cpp
+    unit/test_can_detect.cpp)
 target_link_libraries(unit_tests PRIVATE gauge_core GTest::gtest_main)
+target_compile_definitions(unit_tests PRIVATE GAUGE_PROFILES_DIR="${PROJECT_SOURCE_DIR}/profiles")
 gtest_discover_tests(unit_tests PROPERTIES LABELS unit)
 
 add_executable(sim_tests
-    sim/test_sim_bus.cpp)
+    sim/test_sim_bus.cpp
+    sim/test_obd_session.cpp)
 target_link_libraries(sim_tests PRIVATE gauge_sim GTest::gtest_main)
 gtest_discover_tests(sim_tests PROPERTIES LABELS sim)

@@ -117,15 +117,18 @@ bool IsoTpChannel::transmit(const uint8_t *payload, size_t len)
     ff[0] = static_cast<uint8_t>(kPciFirst | ((len >> 8) & 0x0F));
     ff[1] = static_cast<uint8_t>(len & 0xFF);
     std::memcpy(&ff[2], payload, 6);
-    if (!send(cfg_.tx_id, ff, 8)) {
-        last_error_ = IsoTpError::SinkFailed;
-        return false;
-    }
+    // Enter WaitFc before sending: with a synchronous driver the flow control can
+    // arrive while send() is still on the stack.
     tx_pos_ = 6;
     tx_sn_ = 1;
     tx_waits_ = 0;
     tx_state_ = TxState::WaitFc;
     tx_deadline_ = now_ms_ + cfg_.n_bs_ms;
+    if (!send(cfg_.tx_id, ff, 8)) {
+        tx_state_ = TxState::Idle;
+        last_error_ = IsoTpError::SinkFailed;
+        return false;
+    }
     return true;
 }
 
