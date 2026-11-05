@@ -2,6 +2,10 @@
 # Hardware-independent core. Builds as an ESP-IDF component or as a plain host library.
 set(CORE_SRCS
     "src/transport/safety_gate.cpp"
+    "src/transport/isotp.cpp"
+    "src/obd/obd.cpp"
+    "src/obd/vin.cpp"
+    "src/signals/units.cpp"
     "src/util/log.cpp")
 
 if(ESP_PLATFORM)
