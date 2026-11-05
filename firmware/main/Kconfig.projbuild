@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+menu "Universal OBD Gauge"
+
+    config GAUGE_DEMO_MODE
+        bool "Demo mode: simulated car instead of the CAN bus"
+        default n
+        help
+            Runs the OBD stack against an animated simulated car in memory.
+            The CAN controller is never started. For bench demos and UI work only.
+
+endmenu

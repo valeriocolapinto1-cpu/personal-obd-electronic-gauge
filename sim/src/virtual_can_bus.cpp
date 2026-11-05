@@ -22,7 +22,9 @@ void VirtualCanBus::deliver_due()
     while (!pending_.empty() && pending_.front().due_ms <= now_ms_) {
         const Pending p = pending_.front();
         pending_.pop_front();
-        trace_.push_back(p.frame);
+        if (trace_enabled_) {
+            trace_.push_back(p.frame);
+        }
         // Copy: a node may attach/send while we iterate.
         const std::vector<INode *> nodes = nodes_;
         for (INode *n : nodes) {

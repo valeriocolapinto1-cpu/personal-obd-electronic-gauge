@@ -45,13 +45,14 @@ jobs:
         run: ./scripts/test.ps1
 
   firmware:
-    name: ESP-IDF build (${{ matrix.board }})
+    name: ESP-IDF build (${{ matrix.board }}, ${{ matrix.variant }})
     runs-on: ubuntu-24.04
     container: espressif/idf:v5.5.6
     strategy:
       fail-fast: false
       matrix:
         board: [waveshare_s3_lcd21]
+        variant: [release, demo]
     steps:
       - uses: actions/checkout@v4
       - name: Build
@@ -59,7 +60,11 @@ jobs:
         working-directory: firmware
         run: |
           . $IDF_PATH/export.sh
-          idf.py -DGAUGE_BOARD=${{ matrix.board }} build
+          if [ "${{ matrix.variant }}" = "demo" ]; then
+            idf.py -DGAUGE_BOARD=${{ matrix.board }} -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.demo" build
+          else
+            idf.py -DGAUGE_BOARD=${{ matrix.board }} build
+          fi
       - name: Size report
         shell: bash
         working-directory: firmware
@@ -68,7 +73,7 @@ jobs:
           idf.py size
       - uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ matrix.board }}
+          name: firmware-${{ matrix.board }}-${{ matrix.variant }}
           path: |
             firmware/build/*.bin
             firmware/build/bootloader/bootloader.bin
