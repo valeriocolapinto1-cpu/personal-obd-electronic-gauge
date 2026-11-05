@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "vw_golf6_20tdi_140",
+  "name": "VW Golf 6 2.0 TDI 140 hp",
+  "extension": "vag",
+  "protocol": "can_11bit_500k",
+  "engine": { "cylinders": 4, "fuel": "diesel" },
+  "match": {
+    "vin_prefixes": ["WVWZZZ1KZ"],
+    "wmi": ["WVW"],
+    "year_from": 2008,
+    "year_to": 2013,
+    "verified": false
+  },
+  "rpm": { "limiter": 4500, "ring_start": 2500, "scale_max": 5000 },
+  "signals": [
+    { "id": "engine_rpm", "max": 5500 },
+    { "id": "boost", "alarm": { "warn_high": 160, "crit_high": 180 } },
+    { "id": "coolant_temp", "alarm": { "warn_high": 105, "crit_high": 112, "warn_low": 60 } },
+    { "id": "oil_temp", "alarm": { "warn_low": 70, "warn_high": 130, "crit_high": 140 } },
+    { "id": "fuel_rate", "label": "FUEL" },
+    { "id": "intake_map" },
+    { "id": "barometric" },
+    { "id": "vehicle_speed" }
+  ]
+}

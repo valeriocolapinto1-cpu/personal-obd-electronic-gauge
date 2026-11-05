@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 // Universal OBD Gauge - firmware entry point.
-// Phase 0: board bring-up only. No vehicle bus code is linked in this build.
+// Bring-up screen + OBD-II over CAN (phase 2). Read-only: every request passes the SafetyGate.
 #include "board/board.h"
 #include "bringup_ui.h"
+#include "bus_task.h"
 #include "core/util/log.h"
 
 #include "esp_log.h"
@@ -53,4 +54,7 @@ extern "C" void app_main(void)
         board::lvgl_unlock();
     }
     board::display().set_backlight(80);
+
+    // Vehicle bus: listen-only bitrate detection first, then the OBD session.
+    app::bus_task_start();
 }

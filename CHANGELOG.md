@@ -6,6 +6,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [S
 ## [Unreleased]
 
 ### Added
+- Phase 2: ISO-TP (ISO 15765-2) transport with flow control, block size, STmin, WAIT/overflow, timeouts.
+- OBD-II service 01/09 codec (standard PID table, support bitmaps, response validation), VIN parsing
+  (check digit, model-year codes), unit conversions (boost relative/absolute, psi, °F, fuel L/100 km,
+  fuel rate from injection quantity).
+- `ObdSession`: functional discovery (11-bit, then 29-bit), engine-ECU choice, support bitmaps, VIN,
+  cyclic polling with a global rate limit covering every request, back-off, bus-loss detection,
+  derived boost, MAP saturation flag.
+- Poll scheduler (fast/normal/slow, focus, back-off, not-supported disable).
+- CAN bitrate detection in listen-only mode and the silent-bus policy (no transmission by default).
+- Car profiles (JSON schema v1) with a built-in strict JSON parser, signal catalogue, VIN-based matching;
+  profiles for the three target cars and a generic fallback.
+- Firmware: TWAI driver behind `hal::ICanBus` (transmit refused in listen-only mode), bus task,
+  profiles embedded at build time, live values on the bring-up screen and in the log.
+- Simulator: ISO-TP-capable fake ECU (29-bit, VIN multi-frame, on/offline), end-to-end session tests.
+- Docs: car sheets, `ADDING_A_CAR.md`, `PROFILE_SCHEMA.md`.
 - Phase 1: hardware-independent `core` library (ESP-IDF component and host library).
 - **SafetyGate**: compile-time allow-list for every diagnostic request (default deny, permanent deny list,
   OBD/manufacturer contexts, session check) and `GatedRequestSink`, the only path to a bus transport.

@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "generic_obd",
+  "name": "Generic OBD-II car",
+  "protocol": "auto",
+  "engine": { "cylinders": 4, "fuel": "petrol" },
+  "rpm": { "limiter": 6000, "ring_start": 3000, "scale_max": 7000 },
+  "signals": [
+    { "id": "engine_rpm" },
+    { "id": "coolant_temp", "alarm": { "warn_high": 105, "crit_high": 112, "warn_low": 60 } },
+    { "id": "intake_air_temp" },
+    { "id": "intake_map" },
+    { "id": "barometric" },
+    { "id": "boost" },
+    { "id": "vehicle_speed" },
+    { "id": "module_voltage", "alarm": { "warn_low": 12.0, "crit_low": 11.5, "warn_high": 15.0 } }
+  ]
+}

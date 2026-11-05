@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "hyundai_i20_12_pb",
+  "name": "Hyundai i20 1.2 (1st gen)",
+  "protocol": "auto",
+  "engine": { "cylinders": 4, "fuel": "petrol" },
+  "match": {
+    "wmi": ["MAL"],
+    "year_from": 2008,
+    "year_to": 2014,
+    "verified": false
+  },
+  "rpm": { "limiter": 6200, "ring_start": 3500, "scale_max": 7000 },
+  "signals": [
+    { "id": "engine_rpm" },
+    { "id": "coolant_temp", "alarm": { "warn_high": 105, "crit_high": 112, "warn_low": 60 } }
+  ]
+}

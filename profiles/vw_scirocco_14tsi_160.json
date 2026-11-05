@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "vw_scirocco_14tsi_160",
+  "name": "VW Scirocco 1.4 TSI 160 hp",
+  "extension": "vag",
+  "protocol": "can_11bit_500k",
+  "engine": { "cylinders": 4, "fuel": "petrol" },
+  "match": {
+    "vin_prefixes": ["WVWZZZ13Z"],
+    "wmi": ["WVW"],
+    "year_from": 2008,
+    "year_to": 2017,
+    "verified": false
+  },
+  "rpm": { "limiter": 6500, "ring_start": 3500, "scale_max": 7000 },
+  "signals": [
+    { "id": "engine_rpm" },
+    { "id": "boost", "label": "BOOST", "alarm": { "warn_high": 160, "crit_high": 180 } },
+    { "id": "coolant_temp", "alarm": { "warn_high": 105, "crit_high": 112, "warn_low": 60 } },
+    { "id": "oil_temp", "alarm": { "warn_low": 70, "warn_high": 130, "crit_high": 140 } },
+    { "id": "intake_air_temp", "alarm": { "warn_high": 60 } },
+    { "id": "intake_map" },
+    { "id": "barometric" },
+    { "id": "module_voltage" }
+  ]
+}
