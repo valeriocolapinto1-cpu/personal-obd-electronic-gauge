@@ -19,6 +19,31 @@ jobs:
       - name: Check formatting
         run: python3 scripts/check_format.py --clang-format clang-format-18
 
+  host-linux:
+    name: Host tests (Linux, ASan/UBSan)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgtest-dev ninja-build
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DGAUGE_SANITIZE=ON
+      - name: Build
+        run: cmake --build build
+      - name: Unit tests
+        run: ctest --test-dir build -L unit --output-on-failure --no-tests=error
+      - name: Simulator tests
+        run: ctest --test-dir build -L sim --output-on-failure --no-tests=error
+
+  host-windows:
+    name: Host tests (Windows, MSVC)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test
+        shell: pwsh
+        run: ./scripts/test.ps1
+
   firmware:
     name: ESP-IDF build (${{ matrix.board }})
     runs-on: ubuntu-24.04

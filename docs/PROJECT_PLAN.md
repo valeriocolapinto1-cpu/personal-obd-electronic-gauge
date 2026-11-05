@@ -297,7 +297,7 @@ Phase 10 (CAD) can start in parallel after phase 0, once the board and LED dimen
 3. Board GPIO availability (phase 0).
 4. LED ring vs strip and the exact diameter (phase 0 + 10).
 5. Friend's printer: enclosed (ASA) or open (PETG)?
-6. Unit-test framework: GoogleTest vs Unity (decide in phase 1).
+6. ~~Unit-test framework~~ → GoogleTest (D-1.1).
 7. Wi-Fi AP activation policy (phase 8).
 8. GPS module option A or B (phase 9).
 
@@ -313,3 +313,6 @@ Phase 10 (CAD) can start in parallel after phase 0, once the board and LED dimen
 - 2026-11-05 — **D-0.2 (PROVISIONAL, dependency)**: only `lvgl/lvgl ~9.2` added from the component registry. Panel, touch and expander drivers written in-repo (small) instead of pulling `esp_lcd_st7701`, `esp_lcd_touch_cst816s`, `esp_io_expander_tca9554`, `esp_lvgl_port`.
 - 2026-11-05 — **D-0.3**: ESP-IDF **v5.5.6** (latest v5.x). Firmware compiles with the ESP-IDF default C++ dialect; project code sticks to C++17 features. Host code builds with `-std=c++17`.
 - 2026-11-05 — **D-0.4 (PROVISIONAL, open point 5)**: enclosure material **ASA** strongly preferred: PETG softens around 70–80 °C, the expected dashboard temperature.
+- 2026-11-05 — **D-1.1 (open point 6)**: host unit tests use **GoogleTest** (system package on Linux CI, FetchContent on Windows). Richer assertions and parameterised tests than Unity; the firmware does not link it.
+- 2026-11-05 — **D-1.2 (PROVISIONAL, safety policy detail)**: SafetyGate allows session control only with sub-function 0x01/0x03 (bit 7 ignored), so KWP `0x81` (default) passes and KWP `0x85`/`0x86`/`0x87`/`0x89` are rejected. If VAG TP2.0 needs `0x89` in phase 7, it will be asked first. The permanent deny list also covers KWP-specific write/routine/IO services (0x30, 0x32, 0x33, 0x38, 0x3D, 0x85, 0x87).
+- 2026-11-05 — ESP-IDF component `hal` renamed `gauge_hal` (name clash with the ESP-IDF `hal` component).
