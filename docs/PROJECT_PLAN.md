@@ -1,6 +1,6 @@
 # Universal OBD Gauge — Project Plan
 
-Status: **planning** · Owner: Valerio · Licence: GPL-3.0 · Last update: 2026-11-05
+Status: **phase 0 in progress** · Owner: Valerio · Licence: GPL-3.0 · Last update: 2026-11-05
 
 This document is the single source of truth for scope, hardware, architecture and phases. Claude Code follows it together with `CLAUDE.md`. Decisions taken later are appended to §12.
 
@@ -266,7 +266,7 @@ Each phase = one branch + PR + green CI + a short learning summary in Italian at
 
 | # | Phase | Main deliverables | Exit criteria |
 |---|---|---|---|
-| 0 | **Bench bring-up & pin map** | ESP-IDF project skeleton, board bring-up (display, touch, buzzer, SD), verified **pin map** from the schematic, BOM price check, KiCad schematic draft | LVGL demo runs on the board; pin map doc approved by the user |
+| 0 | **Bench bring-up & pin map** — *code done, bench test pending* | ESP-IDF project skeleton, board bring-up (display, touch, buzzer, SD), verified **pin map** from the schematic, BOM price check, KiCad schematic draft | LVGL demo runs on the board; pin map doc approved by the user |
 | 1 | **Core + tooling** | repo structure, clang-format, host CMake, unit-test framework, **CAN/K-line simulator** skeleton, GitHub Actions CI, SafetyGate allow-list with tests | CI green; forbidden services provably blocked |
 | 2 | **CAN + OBD-II** | TWAI listen-only bitrate detect, ISO-TP, services 01/09, PID support bitmaps, VIN, profile matching, signal registry + scheduler | Reads RPM, coolant, IAT, MAP, baro, VIN on Scirocco and Golf (read-only); simulator tests pass |
 | 3 | **UI v1** | one-signal screens, analog + digital styles, navigation (touch + button), boot sweep + name + logo placeholder, basic themes day/night | Smooth on the bench with the simulator; tested in the car |
@@ -308,3 +308,8 @@ Phase 10 (CAD) can start in parallel after phase 0, once the board and LED dimen
 - 2026-11-05 — Web app served by the gauge (no native app), OTA via web app.
 - 2026-11-05 — ESP-IDF + C++17 moderate, LVGL v9, GPL-3.0, public GitHub repo.
 - 2026-11-05 — Claude Code merges PRs autonomously only with green CI. It asks before new deps, hardware/pin changes, architecture changes and anything on the vehicle bus.
+- 2026-11-05 — The user asked Claude to work **without stopping**. Decisions that CLAUDE.md says need approval are taken provisionally, marked **PROVISIONAL**, and listed in the PR for review.
+- 2026-11-05 — **D-0.1 (PROVISIONAL, hardware/pin map)**: the board has only GPIO0/43/44 free. CAN TX=GPIO0, CAN RX=GPIO44, WS2812=GPIO43, console on native USB; K-line + button through an SC16IS750 I2C-UART bridge, light sensor + supply sense through an ADS1115. No button wake from deep sleep. See `docs/hardware/PIN_MAP.md`.
+- 2026-11-05 — **D-0.2 (PROVISIONAL, dependency)**: only `lvgl/lvgl ~9.2` added from the component registry. Panel, touch and expander drivers written in-repo (small) instead of pulling `esp_lcd_st7701`, `esp_lcd_touch_cst816s`, `esp_io_expander_tca9554`, `esp_lvgl_port`.
+- 2026-11-05 — **D-0.3**: ESP-IDF **v5.5.6** (latest v5.x). Firmware compiles with the ESP-IDF default C++ dialect; project code sticks to C++17 features. Host code builds with `-std=c++17`.
+- 2026-11-05 — **D-0.4 (PROVISIONAL, open point 5)**: enclosure material **ASA** strongly preferred: PETG softens around 70–80 °C, the expected dashboard temperature.

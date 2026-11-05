@@ -1,0 +1,16 @@
+# Changelog
+
+All notable changes to this project are documented here.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
+
+## [Unreleased]
+
+### Added
+- Phase 0: ESP-IDF v5.5 project skeleton for the Waveshare ESP32-S3-Touch-LCD-2.1.
+- Board support: TCA9554 expander, ST7701 RGB panel (double frame buffer in PSRAM, VSYNC swap),
+  CST820 touch, backlight PWM, buzzer, microSD (SDMMC 1-bit).
+- HAL interfaces: display, touch, buzzer, removable storage.
+- LVGL v9 glue and a bench bring-up screen.
+- Verified pin map from the official schematic (`docs/hardware/PIN_MAP.md`), provisional allocation of the
+  free pins (decision D-0.1), BOM draft.
+- CI: clang-format check and ESP-IDF build; cross-platform format script.
