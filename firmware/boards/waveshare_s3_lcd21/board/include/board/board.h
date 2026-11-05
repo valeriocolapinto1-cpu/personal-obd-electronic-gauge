@@ -6,10 +6,10 @@
 
 #include <cstdint>
 
-#include "hal/buzzer.h"
-#include "hal/display.h"
-#include "hal/storage.h"
-#include "hal/touch.h"
+#include "gauge_hal/buzzer.h"
+#include "gauge_hal/display.h"
+#include "gauge_hal/storage.h"
+#include "gauge_hal/touch.h"
 
 namespace board {
 
