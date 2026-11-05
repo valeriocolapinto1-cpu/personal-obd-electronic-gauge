@@ -4,15 +4,35 @@
 // Phase 0: board bring-up only. No vehicle bus code is linked in this build.
 #include "board/board.h"
 #include "bringup_ui.h"
+#include "core/util/log.h"
 
 #include "esp_log.h"
 
 namespace {
 const char *TAG = "main";
+
+void core_log_sink(core::log::Level level, const char *tag, const char *message)
+{
+    switch (level) {
+        case core::log::Level::Error:
+            ESP_LOGE(tag, "%s", message);
+            break;
+        case core::log::Level::Warn:
+            ESP_LOGW(tag, "%s", message);
+            break;
+        case core::log::Level::Info:
+            ESP_LOGI(tag, "%s", message);
+            break;
+        case core::log::Level::Debug:
+            ESP_LOGD(tag, "%s", message);
+            break;
+    }
 }
+} // namespace
 
 extern "C" void app_main(void)
 {
+    core::log::set_sink(core_log_sink);
     ESP_LOGI(TAG, "Universal OBD Gauge - bench bring-up");
     if (!board::init()) {
         ESP_LOGE(TAG, "board init failed");
