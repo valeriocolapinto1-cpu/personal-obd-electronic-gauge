@@ -18,9 +18,10 @@ and optional plug-in modules (GPS first) configured from a web app served by the
 
 | Car | Protocol | Status |
 |---|---|---|
-| VW Scirocco 1.4 TSI 160 hp (2008) | CAN 500k | planned |
-| VW Golf 6 2.0 TDI 140 hp | CAN 500k | planned |
-| Hyundai i20 1.2 MPI (1st gen) | CAN or K-line (to check) | planned |
+| VW Scirocco 1.4 TSI 160 hp (2008) | CAN 500k | standard PIDs in simulator, car test pending ([sheet](docs/cars/vw_scirocco_14tsi_160.md)) |
+| VW Golf 6 2.0 TDI 140 hp | CAN 500k | standard PIDs in simulator, car test pending ([sheet](docs/cars/vw_golf6_20tdi_140.md)) |
+| Hyundai i20 1.2 MPI (1st gen) | CAN or K-line (to check) | CAN in simulator ([sheet](docs/cars/hyundai_i20_12_pb.md)) |
+| Any other OBD-II car | CAN | generic profile; see [ADDING_A_CAR](docs/ADDING_A_CAR.md) |
 
 ## Hardware
 Base board: Waveshare ESP32-S3-Touch-LCD-2.1. Pin map: [docs/hardware/PIN_MAP.md](docs/hardware/PIN_MAP.md) ·

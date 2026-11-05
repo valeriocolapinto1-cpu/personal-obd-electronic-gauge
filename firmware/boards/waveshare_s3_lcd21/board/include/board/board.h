@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include "gauge_hal/buzzer.h"
+#include "gauge_hal/can_bus.h"
 #include "gauge_hal/display.h"
 #include "gauge_hal/storage.h"
 #include "gauge_hal/touch.h"
@@ -21,6 +22,8 @@ hal::IDisplay &display();
 hal::ITouch &touch();
 hal::IBuzzer &buzzer();
 hal::IRemovableStorage &sdcard();
+/// CAN controller (TWAI). Starts stopped; the bus task opens it listen-only first.
+hal::ICanBus &can();
 
 /// Creates the LVGL display (double frame buffer in PSRAM, direct mode),
 /// the touch input device and the LVGL handler task pinned to core 1.

@@ -5,6 +5,7 @@
 #include <cstdio>
 
 #include "board/board.h"
+#include "bus_task.h"
 #include "lvgl.h"
 
 namespace {
@@ -12,17 +13,50 @@ namespace {
 lv_obj_t *s_arc = nullptr;
 lv_obj_t *s_value = nullptr;
 lv_obj_t *s_touch = nullptr;
+lv_obj_t *s_bus = nullptr;
 int s_sweep = 0;
 int s_dir = 1;
 
 void sweep_timer_cb(lv_timer_t *)
 {
+    // Real RPM when the bus delivers it (slot of "engine_rpm"), demo sweep otherwise.
+    const auto defs = app::active_signals();
+    for (size_t i = 0; i < defs.size(); ++i) {
+        if (defs[i].id != "engine_rpm") {
+            continue;
+        }
+        const core::signals::Sample rpm = app::signal_store().read(i);
+        if (rpm.valid) {
+            const int pct = static_cast<int>(100.0 * rpm.value / (defs[i].max > 0 ? defs[i].max : 8000));
+            lv_arc_set_value(s_arc, pct < 0 ? 0 : (pct > 100 ? 100 : pct));
+            lv_label_set_text_fmt(s_value, "%d", static_cast<int>(rpm.value));
+            return;
+        }
+    }
     s_sweep += s_dir * 2;
     if (s_sweep >= 100 || s_sweep <= 0) {
         s_dir = -s_dir;
     }
     lv_arc_set_value(s_arc, s_sweep);
-    lv_label_set_text_fmt(s_value, "%d", s_sweep * 70); // fake RPM 0..7000
+    lv_label_set_text_fmt(s_value, "%d", s_sweep * 70); // demo sweep 0..7000
+}
+
+void bus_timer_cb(lv_timer_t *)
+{
+    const app::BusStatus st = app::bus_status();
+    const auto defs = app::active_signals();
+    char text[256];
+    int n = snprintf(text, sizeof(text), "%s %s\n", st.phase.c_str(), st.profile.c_str());
+    for (size_t i = 0; i < defs.size() && i < 4 && n > 0 && static_cast<size_t>(n) < sizeof(text); ++i) {
+        const core::signals::Sample s = app::signal_store().read(i);
+        if (s.valid) {
+            n += snprintf(text + n, sizeof(text) - n, "%s %.*f %s\n", defs[i].label.c_str(), defs[i].decimals, s.value,
+                          defs[i].unit.c_str());
+        } else {
+            n += snprintf(text + n, sizeof(text) - n, "%s --\n", defs[i].label.c_str());
+        }
+    }
+    lv_label_set_text(s_bus, text);
 }
 
 void screen_pressing_cb(lv_event_t *e)
@@ -103,5 +137,13 @@ void bringup_ui_create(const hal::DisplayInfo &info, bool sd_ok, unsigned sd_mib
     lv_obj_align(slider, LV_ALIGN_CENTER, 0, size / 3);
     lv_obj_add_event_cb(slider, backlight_cb, LV_EVENT_VALUE_CHANGED, nullptr);
 
+    s_bus = lv_label_create(scr);
+    lv_obj_set_style_text_font(s_bus, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_color(s_bus, lv_palette_main(LV_PALETTE_AMBER), 0);
+    lv_obj_set_style_text_align(s_bus, LV_TEXT_ALIGN_CENTER, 0);
+    lv_label_set_text(s_bus, "bus: starting");
+    lv_obj_align(s_bus, LV_ALIGN_TOP_MID, 0, size / 8);
+
     lv_timer_create(sweep_timer_cb, 20, nullptr);
+    lv_timer_create(bus_timer_cb, 300, nullptr);
 }
