@@ -23,7 +23,7 @@ if(NOT CMAKE_BUILD_EARLY_EXPANSION)
     configure_file("${GAUGE_PROFILES_CPP}.in" "${GAUGE_PROFILES_CPP}" COPYONLY)
 endif()
 
-idf_component_register(SRCS "main.cpp" "bringup_ui.cpp" "bus_task.cpp" "${GAUGE_PROFILES_CPP}"
+idf_component_register(SRCS "main.cpp" "bus_task.cpp" "${GAUGE_PROFILES_CPP}"
                        INCLUDE_DIRS "."
                        EMBED_TXTFILES ${GAUGE_PROFILE_FILES}
-                       REQUIRES board core gauge_hal lvgl esp_timer)
+                       REQUIRES board core gauge_hal gauge_ui sim lvgl esp_timer)

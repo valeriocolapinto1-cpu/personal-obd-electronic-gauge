@@ -8,6 +8,14 @@
 #include "core/profiles/profile.h"
 #include "core/transport/can_detect.h"
 #include "embedded_profiles.h"
+#include "sdkconfig.h"
+
+#if CONFIG_GAUGE_DEMO_MODE
+#include "sim/demo_car.h"
+#include "sim/virtual_can_bus.h"
+#endif
+
+#include <atomic>
 
 #include "esp_log.h"
 #include "esp_timer.h"
@@ -32,6 +40,7 @@ BusStatus s_status;
 std::vector<core::signals::SignalDef> s_signals;
 std::vector<core::profiles::Profile> s_profiles;
 volatile int s_focus_slot = -1;
+std::atomic<uint32_t> s_generation{0};
 
 uint32_t now_ms()
 {
@@ -132,6 +141,56 @@ void log_values(const std::vector<core::signals::SignalDef> &defs)
     }
 }
 
+/// Per-iteration housekeeping shared by the real and the demo bus. Returns false when the
+/// session has ended.
+bool service_session(core::obd::ObdSession &session, uint32_t t, uint32_t &next_log, int &focus)
+{
+    const core::obd::SessionState st = session.state();
+    if (st == core::obd::SessionState::WaitingForSignals) {
+        const core::obd::Vin *vin = session.has_vin() ? &session.vin() : nullptr;
+        const core::profiles::Profile *p = core::profiles::select_profile(s_profiles, vin, "");
+        if (p == nullptr) {
+            ESP_LOGE(TAG, "no profiles available");
+            return false;
+        }
+        ESP_LOGI(TAG, "VIN %s -> profile %s", vin ? "read" : "not available", p->id.c_str());
+        session.set_signals(p->signals, t);
+        xSemaphoreTake(s_mutex, portMAX_DELAY);
+        s_signals = p->signals;
+        s_status.profile = p->name;
+        s_status.vin_read = vin != nullptr;
+        xSemaphoreGive(s_mutex);
+        ++s_generation;
+    }
+    if (st == core::obd::SessionState::NoResponse || st == core::obd::SessionState::Lost) {
+        ESP_LOGW(TAG, "session ended: %s", core::obd::to_string(st));
+        return false;
+    }
+    if (s_focus_slot != focus) {
+        focus = s_focus_slot;
+        session.set_focus(focus < 0 ? SIZE_MAX : static_cast<size_t>(focus));
+    }
+    if (static_cast<int32_t>(t - next_log) >= 0) {
+        next_log = t + kLogPeriodMs;
+        xSemaphoreTake(s_mutex, portMAX_DELAY);
+        s_status.phase = core::obd::to_string(st);
+        s_status.requests = session.stats().requests;
+        s_status.responses = session.stats().responses;
+        s_status.rejected_by_gate = session.gate_stats().rejected;
+        const auto defs = s_signals;
+        xSemaphoreGive(s_mutex);
+        log_values(defs);
+    }
+    return true;
+}
+
+void clear_values()
+{
+    for (size_t i = 0; i < core::signals::SignalStore::kCapacity; ++i) {
+        s_store.invalidate(i);
+    }
+}
+
 void run_session(uint32_t bitrate)
 {
     hal::ICanBus &can = board::can();
@@ -149,7 +208,6 @@ void run_session(uint32_t bitrate)
     session.start(now_ms());
     uint32_t next_log = now_ms() + kLogPeriodMs;
     int focus = -1;
-
     for (;;) {
         core::bus::CanFrame f;
         while (can.receive(f, 0)) {
@@ -157,53 +215,80 @@ void run_session(uint32_t bitrate)
         }
         const uint32_t t = now_ms();
         session.poll(t);
-
-        const core::obd::SessionState st = session.state();
-        if (st == core::obd::SessionState::WaitingForSignals) {
-            const core::obd::Vin *vin = session.has_vin() ? &session.vin() : nullptr;
-            const core::profiles::Profile *p = core::profiles::select_profile(s_profiles, vin, "");
-            if (p == nullptr) {
-                ESP_LOGE(TAG, "no profiles available");
-                break;
-            }
-            ESP_LOGI(TAG, "VIN %s -> profile %s", vin ? "read" : "not available", p->id.c_str());
-            session.set_signals(p->signals, t);
-            xSemaphoreTake(s_mutex, portMAX_DELAY);
-            s_signals = p->signals;
-            s_status.profile = p->name;
-            s_status.vin_read = vin != nullptr;
-            xSemaphoreGive(s_mutex);
-        }
-        if (st == core::obd::SessionState::NoResponse || st == core::obd::SessionState::Lost) {
-            ESP_LOGW(TAG, "session ended: %s", core::obd::to_string(st));
+        if (!service_session(session, t, next_log, focus)) {
             break;
-        }
-        if (s_focus_slot != focus) {
-            focus = s_focus_slot;
-            session.set_focus(focus < 0 ? SIZE_MAX : static_cast<size_t>(focus));
-        }
-        if (static_cast<int32_t>(t - next_log) >= 0) {
-            next_log = t + kLogPeriodMs;
-            xSemaphoreTake(s_mutex, portMAX_DELAY);
-            s_status.phase = core::obd::to_string(st);
-            s_status.requests = session.stats().requests;
-            s_status.responses = session.stats().responses;
-            s_status.rejected_by_gate = session.gate_stats().rejected;
-            const auto defs = s_signals;
-            xSemaphoreGive(s_mutex);
-            log_values(defs);
         }
         vTaskDelay(1);
     }
     can.stop();
-    for (size_t i = 0; i < core::signals::SignalStore::kCapacity; ++i) {
-        s_store.invalidate(i);
+    clear_values();
+}
+
+#if CONFIG_GAUGE_DEMO_MODE
+/// The gauge's side of the in-memory bus used by demo builds.
+class DemoPort : public sim::INode, public core::transport::ICanFrameSink {
+public:
+    explicit DemoPort(sim::VirtualCanBus &bus) : bus_(bus) {}
+    void set_session(core::obd::ObdSession *s) { session_ = s; }
+    bool send_frame(const core::bus::CanFrame &f) override
+    {
+        bus_.send(this, f);
+        return true;
+    }
+    void on_frame(sim::VirtualCanBus &b, const core::bus::CanFrame &f) override
+    {
+        if (session_ != nullptr) {
+            session_->on_frame(f, b.now_ms());
+        }
+    }
+
+private:
+    sim::VirtualCanBus &bus_;
+    core::obd::ObdSession *session_ = nullptr;
+};
+
+/// Demo build: the full OBD stack (SafetyGate, ISO-TP, session) runs against a simulated
+/// car in memory. The CAN controller is never started.
+void run_demo()
+{
+    ESP_LOGW(TAG, "DEMO MODE: simulated car, CAN bus not used");
+    sim::VirtualCanBus vbus;
+    vbus.set_trace_enabled(false);
+    sim::DemoCar car(6500);
+    DemoPort port(vbus);
+    core::obd::ObdSession session(port, s_store);
+    port.set_session(&session);
+    vbus.attach(&car);
+    vbus.attach(&port);
+    xSemaphoreTake(s_mutex, portMAX_DELAY);
+    s_status.phase = "demo";
+    xSemaphoreGive(s_mutex);
+
+    session.start(vbus.now_ms());
+    uint32_t next_log = kLogPeriodMs;
+    int focus = -1;
+    uint32_t last = now_ms();
+    for (;;) {
+        const uint32_t real = now_ms();
+        for (uint32_t i = 0; i < real - last; ++i) {
+            vbus.advance(1);
+            session.poll(vbus.now_ms());
+        }
+        last = real;
+        if (!service_session(session, vbus.now_ms(), next_log, focus)) {
+            session.start(vbus.now_ms());
+        }
+        vTaskDelay(1);
     }
 }
+#endif
 
 void bus_task(void *)
 {
     load_profiles();
+#if CONFIG_GAUGE_DEMO_MODE
+    run_demo();
+#endif
     for (;;) {
         const uint32_t bitrate = detect_bitrate();
         if (bitrate == 0) {
@@ -228,6 +313,11 @@ void bus_task_start()
 core::signals::SignalStore &signal_store()
 {
     return s_store;
+}
+
+uint32_t signals_generation()
+{
+    return s_generation.load();
 }
 
 std::vector<core::signals::SignalDef> active_signals()

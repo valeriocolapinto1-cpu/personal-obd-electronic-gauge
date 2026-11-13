@@ -13,6 +13,11 @@ set(CORE_SRCS
     "src/profiles/profile.cpp"
     "src/util/json.cpp"
     "src/scheduler/poll_scheduler.cpp"
+    "src/display/gauge_math.cpp"
+    "src/display/screens.cpp"
+    "src/display/theme.cpp"
+    "src/display/boot_sequence.cpp"
+    "src/input/input.cpp"
     "src/util/log.cpp")
 
 if(ESP_PLATFORM)

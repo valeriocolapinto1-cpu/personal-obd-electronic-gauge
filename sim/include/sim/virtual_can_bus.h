@@ -36,6 +36,8 @@ public:
     uint32_t now_ms() const { return now_ms_; }
     /// Every frame delivered so far (for assertions).
     const std::vector<core::bus::CanFrame> &trace() const { return trace_; }
+    /// Disable for long runs (demo builds) so the trace does not grow without limit.
+    void set_trace_enabled(bool enabled) { trace_enabled_ = enabled; }
 
 private:
     struct Pending {
@@ -49,6 +51,7 @@ private:
     std::deque<Pending> pending_;
     std::vector<core::bus::CanFrame> trace_;
     uint32_t now_ms_ = 0;
+    bool trace_enabled_ = true;
 };
 
 } // namespace sim

@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include "sim/demo_car.h"
 #include "sim/fake_obd_ecu.h"
 #include "sim/foreign_dongle.h"
 #include "sim/virtual_can_bus.h"
@@ -117,4 +118,24 @@ TEST(SimBus, ForeignDongleGeneratesUnsolicitedTraffic)
         }
     }
     EXPECT_EQ(answers, 10u);
+}
+
+TEST(SimBus, DemoCarCycle)
+{
+    sim::DemoCar car(6500);
+    // Idle, then a pull that reaches the limiter, MAP above the 255 kPa range of PID 0x0B
+    EXPECT_NEAR(car.at(1000).rpm, 800, 50);
+    double max_rpm = 0;
+    double max_map = 0;
+    for (uint32_t t = 0; t < 20000; t += 10) {
+        const auto s = car.at(t);
+        max_rpm = s.rpm > max_rpm ? s.rpm : max_rpm;
+        max_map = s.map_kpa > max_map ? s.map_kpa : max_map;
+        EXPECT_LE(s.rpm, 6500.0 + 1e-9);
+        EXPECT_GE(s.rpm, 700.0);
+    }
+    EXPECT_GT(max_rpm, 6400);
+    EXPECT_GT(max_map, 255);
+    EXPECT_LT(car.at(0).coolant_c, 25);
+    EXPECT_NEAR(car.at(600000).coolant_c, 90, 3);
 }

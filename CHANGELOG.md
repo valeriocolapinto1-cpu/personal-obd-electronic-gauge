@@ -6,6 +6,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [S
 ## [Unreleased]
 
 ### Added
+- Phase 3: gauge UI (LVGL v9) with an OEM-like analog dial (auto ticks/labels, smoothed needle) and a
+  racing digital view (big number, progress ring, peak), display-agnostic sizes.
+- Boot sequence: sweep 0 → max → 0 with ease-in-out, car name and logo placeholder.
+- Navigation: swipe left/right = next/previous screen, tap = analog/digital toggle; button
+  short/long press detector (for the side button).
+- Themes: four built-in day/night palettes, theme JSON loader, day/night hysteresis switch.
+- Unit preferences (bar relative/absolute, psi, kPa, °C/°F) applied to values and scales.
+- "No data" state with the bus status; "SENSOR LIMIT" flag when PID 0x0B saturates.
+- Demo mode (`sdkconfig.demo`): the whole OBD stack runs against an animated simulated car on the
+  gauge itself; `sim::DemoCar` drive cycle; CI builds release and demo firmware.
+
+### Changed
+- The phase 0 bring-up screen is replaced by the gauge UI.
 - Phase 2: ISO-TP (ISO 15765-2) transport with flow control, block size, STmin, WAIT/overflow, timeouts.
 - OBD-II service 01/09 codec (standard PID table, support bitmaps, response validation), VIN parsing
   (check digit, model-year codes), unit conversions (boost relative/absolute, psi, °F, fuel L/100 km,
